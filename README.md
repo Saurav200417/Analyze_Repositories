@@ -1,0 +1,1 @@
+A backend system that analyzes Git repositories using asynchronous workflows, vector embeddings, and LLM-powered summarization to generate semantic code insights, repository understanding, and intelligent developer assistance.
