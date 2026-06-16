@@ -125,14 +125,19 @@ async def analyze_chunk(chunk: str, chunk_num: int, total_chunks: int) -> str:
         "messages": [{
             "role": "user",
             "content": (
-                f"You are a senior software engineer doing a code review.\n"
-                f"This is part {chunk_num} of {total_chunks} of a repository.\n\n"
-                f"Extract observations ONLY — do NOT produce final output yet.\n"
-                f"Return a short bullet-point list (plain text) covering:\n"
-                f"- Languages / frameworks / libraries spotted\n"
-                f"- Notable strengths\n"
-                f"- Notable weaknesses or issues\n"
-                f"- What this code appears to be doing\n\n"
+                f"You are a code analysis assistant reviewing part {chunk_num} of {total_chunks} of a repository.\n"
+                f"Your job is to extract factual observations ONLY from this chunk.\n"
+                f"Do NOT make judgments. Do NOT say 'good' or 'bad'. Just report what you see.\n\n"
+                f"Return plain text bullet points covering:\n"
+                f"- What this code does (functional description, be specific)\n"
+                f"- Languages, frameworks, libraries spotted\n"
+                f"- Error handling: present, absent, or partial?\n"
+                f"- Hardcoded values: credentials, magic numbers, config values baked in?\n"
+                f"- Naming: descriptive or cryptic?\n"
+                f"- Code structure: modular or monolithic?\n"
+                f"- Dead code: commented-out blocks, unused imports, unreachable logic?\n"
+                f"- Security signals: exposed secrets, unvalidated inputs, unsafe patterns?\n"
+                f"- Anything else notable in this chunk\n\n"
                 f"Code:\n{chunk}"
             ),
         }],
@@ -160,18 +165,31 @@ async def analyze_repository(chunk_observations: list[str]) -> dict:
 
     prompt = (
         f"You are a senior software engineer performing a final code review.\n\n"
-        f"Below are observations collected from each part of a repository:\n\n"
+        f"Below are observations collected from each part of this repository:\n\n"
         f"{combined}\n\n"
-        f"Using all observations above, return ONLY a valid JSON object.\n"
-        f"No markdown, no explanation, no code fences, no reasoning. Just raw JSON.\n\n"
-        f"Return this exact structure:\n"
-        f'{{\n'
-        f'  "summary": "2-3 sentence overview of what this repo does",\n'
+        f"Your job is to synthesize these observations into a final analysis.\n"
+        f"Judge everything relative to the project's goal and complexity — not against an enterprise standard.\n\n"
+        f"Use this rubric to determine good_practices and improvement_areas:\n"
+        f"- Error handling: are failures caught or silently swallowed?\n"
+        f"- Security: are secrets hardcoded, inputs unvalidated?\n"
+        f"- Modularity: is logic broken into clear components or one giant block?\n"
+        f"- Naming: are variables, functions, files descriptively named?\n"
+        f"- Dead code: commented-out blocks, unused imports, leftover debug code?\n"
+        f"- Dependency hygiene: are dependencies explicit and minimal?\n"
+        f"- Documentation: is there a README, are complex parts explained?\n\n"
+        f"quality_score rubric:\n"
+        f"- 1-3: multiple rubric areas failing, hard to understand or run\n"
+        f"- 4-6: some good practices, some gaps, functional but rough\n"
+        f"- 7-8: most rubric areas satisfied, minor issues only\n"
+        f"- 9-10: rubric fully satisfied, clean, well documented, production-ready\n\n"
+        f"Return ONLY a valid JSON object. No markdown, no explanation, no code fences.\n\n"
+        f"{{\n"
+        f'  "summary": "2-3 sentence overview of what this repo does and who it is for",\n'
+        f'  "tech_stack": ["languages", "frameworks", "libraries"],\n'
         f'  "quality_score": <integer 1-10>,\n'
-        f'  "tech_stack": ["list", "of", "languages", "frameworks", "libraries"],\n'
-        f'  "strengths": ["strength 1", "strength 2", "strength 3"],\n'
-        f'  "weaknesses": ["weakness 1", "weakness 2", "weakness 3"]\n'
-        f'}}'
+        f'  "good_practices": ["only practices observed in the code, grounded in the rubric above"],\n'
+        f'  "improvement_areas": ["specific issues observed, tied to rubric, relative to project goal"]\n'
+        f"}}"
     )
 
     payload = {
