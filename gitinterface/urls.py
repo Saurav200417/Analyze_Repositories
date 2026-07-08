@@ -3,11 +3,12 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from gitinterface.view.chat import ChatView
 from gitinterface.view.repositories import RepositoryView,RepositoryDetailView,RepositoryExtractView,EmbeddingView
-from gitinterface.view.authentication import LoginView , RegisterView
+from gitinterface.view.authentication import LoginView, RegisterView, LogoutView
 urlpatterns = {
     # login
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 
     # Get all repos
     path('users/<str:username>/repos/', RepositoryView.as_view()),
