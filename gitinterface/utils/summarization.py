@@ -185,6 +185,7 @@ async def analyze_repository(chunk_observations: list[str]) -> dict:
         f"- 9-10: rubric fully satisfied, clean, well documented, production-ready\n\n"
         f"Return ONLY a valid JSON object. No markdown, no explanation, no code fences.\n\n"
         f"{{\n"
+        f' Keep Your main focus on creating summary , The summary should be concrete , thorough , should capture summary of every chunk'
         f'  "summary": "2-3 sentence overview of what this repo does and who it is for",\n'
         f'  "tech_stack": ["languages", "frameworks", "libraries"],\n'
         f'  "quality_score": <integer 1-10>,\n'
