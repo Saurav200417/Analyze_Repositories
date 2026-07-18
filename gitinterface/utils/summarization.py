@@ -101,6 +101,7 @@ async def groq_post(payload: dict, retries: int = 4) -> str:
         async with httpx.AsyncClient() as client:
             response = await client.post(GROQ_URL, headers=headers, json=payload, timeout=60)
 
+            response.raise_for_status()
         if response.status_code == 429:
             wait = 2 ** attempt
             print(f"[groq_post] 429 — retrying in {wait}s (attempt {attempt + 1}/{retries})")
@@ -114,7 +115,7 @@ async def groq_post(payload: dict, retries: int = 4) -> str:
     raise Exception("Groq rate limit exceeded after all retries.")
 
 
-async def analyze_chunk(chunk: str, chunk_num: int, total_chunks: int) -> str:
+async def analyze_chunk(chunk: str, chunk_num: int, total_chunks: int,metadata: list[str]) -> str:
     """
     Analyze a single chunk and return plain-text observations.
     Not final JSON — just structured notes for the synthesis step.
@@ -126,7 +127,7 @@ async def analyze_chunk(chunk: str, chunk_num: int, total_chunks: int) -> str:
             "role": "user",
             "content": (
                 f"You are a code analysis assistant reviewing part {chunk_num} of {total_chunks} of a repository.\n"
-                f"Your job is to extract factual observations ONLY from this chunk.\n"
+                f"Your job is to extract factual observations ONLY from this chunk.This is some extra data{metadata}\n"
                 f"Do NOT make judgments. Do NOT say 'good' or 'bad'. Just report what you see.\n\n"
                 f"Return plain text bullet points covering:\n"
                 f"- What this code does (functional description, be specific)\n"
